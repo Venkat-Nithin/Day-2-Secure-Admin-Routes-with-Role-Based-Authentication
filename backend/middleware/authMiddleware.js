@@ -1,29 +1,31 @@
-const jwt = require('jsonwebtoken');
-const express = require("express");
+const jwt = require('jsonwebtoken')
+
 
 // Middleware to verify if the user is authenticated
 const verifyToken = (req, res, next) => {
-  const token = req.cookies.token;
+// Issue: No JWT verification here yet(fixed)
+const authHeader = req.headers.authorization;
+if (!authHeader) {
+    return res.status(401).json({ message: 'Access denied. No token provided.' });
+}
 
-  if (!token) {
-    return res.status(401).json({ message: "No token provided" });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({ message: "Invalid or expired token" });
-  }
-};
-
+const token = authHeader.split(' ')[1]; // Assuming Bearer token format
+try {
+  // Verify JWT
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  req.user = decoded; 
+  next();
+} catch (err) {
+  return res.status(401).json({ message: 'Invalid token' });
+}
+// next();
+}
 // Middleware to verify if the user is an admin
 const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
-    return next();
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied' });
   }
-  return res.status(403).json({ message: "Access denied: Admins only" });
+  next();
 };
 
 module.exports = { verifyToken, isAdmin };
