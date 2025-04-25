@@ -1,45 +1,40 @@
+import React, { useState } from 'react';
 import axios from 'axios';
 
 function Home() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState("user"); // Default role is user
   const [errorMessage, setErrorMessage] = useState("");
   const [isLogin, setIsLogin] = useState(true); // Toggle between login and register form
 
-  // Handle registration
   const handleRegister = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/register", {
-        username,
+      const response = await axios.post("http://localhost:5000/register", {
+        email,
         password,
         role
-      }, {
-        withCredentials: true // ✅ Allow cookies to be sent
       });
-
-      console.log("Registration response:", response.data);
       alert('Registration successful!');
-      setUsername("");
-      setPassword("");
-      setRole("user");
+      setEmail('');
+      setPassword('');
+      setRole('user');
+      console.log(response.data);
     } catch (error) {
-      console.error("Registration error:", error);
       setErrorMessage(error.response?.data?.message || "Registration failed");
     }
   };
 
-  // Handle login
   const handleLogin = async () => {
     try {
-      await axios.post("http://localhost:5000/api/auth/login", {
-        username,
-        password
-      }, {
-        withCredentials: true 
+      const response = await axios.post("http://localhost:5000/login", {
+        email,
+        password,
+        role
       });
-      localStorage.setItem("token", response.data.token); // Store the token in localStorage
-      window.location.href = '/admin'; // ✅ Auth state now handled by cookies
+      localStorage.setItem("token", response.data.token);
+      window.location.href = '/admin/dashboard';
+      console.log(response.data.role);
     } catch (error) {
       setErrorMessage(error.response?.data?.message || "Login failed");
     }
@@ -49,11 +44,11 @@ function Home() {
     <div>
       <h1>{isLogin ? "Login" : "Register"}</h1>
 
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
+      <input 
+        type="email" 
+        placeholder="Email" 
+        value={email} 
+        onChange={(e) => setEmail(e.target.value)} 
       />
       <input 
         type="password" 
@@ -61,7 +56,6 @@ function Home() {
         value={password} 
         onChange={(e) => setPassword(e.target.value)} 
       />
-
       
       {/* Only show this input for registration form */}
       {!isLogin && (
@@ -78,8 +72,7 @@ function Home() {
         {isLogin ? "Login" : "Register"}
       </button>
 
-      {/* Only display the error message if it's a string */}
-      <p>{errorMessage && typeof errorMessage === 'string' ? errorMessage : ''}</p>
+      <p>{errorMessage}</p>
       
       {/* Toggle between login and register form */}
       <button onClick={() => setIsLogin(!isLogin)}>
