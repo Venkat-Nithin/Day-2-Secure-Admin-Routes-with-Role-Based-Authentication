@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 
+
 // Middleware to verify if the user is authenticated
 const verifyToken = (req, res, next) => {
 // Issue: No JWT verification here yet(fixed)
