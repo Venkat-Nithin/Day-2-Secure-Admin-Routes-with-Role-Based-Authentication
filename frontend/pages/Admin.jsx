@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Using useNavigate for routing
 
 function Admin() {
   const [content, setContent] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false); // Track if the user has admin privileges
+  const [isAdmin, setIsAdmin] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(true); // Track loading state
+  const navigate = useNavigate(); // Initialize useNavigate hook
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        window.location.href = "/"; // Redirect to home page if no token
-        return;
-      }
-
       try {
         // Fetch user information (role) along with the dashboard data
         const response = await axios.get("http://localhost:5000/api/admin/dashboard", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true  // ✅ Send cookies along
         });
 
         // If the user has admin privileges, allow access to the dashboard
@@ -31,8 +26,9 @@ function Admin() {
           setErrorMessage("You do not have admin access. This page is confidential.");
         }
       } catch (error) {
+        console.error("error:", error);
         setErrorMessage("Access denied or token expired.");
-        window.location.href = "/"; // Redirect to home page if token expired or invalid
+        window.location.href = "/";
       }
     };
     fetchDashboardData();
@@ -41,7 +37,6 @@ function Admin() {
   return (
     <div>
       <h1>Admin Dashboard</h1>
-
       {/* If the user is not an admin, show a confidential message */}
       {!isAdmin ? (
         <div>
